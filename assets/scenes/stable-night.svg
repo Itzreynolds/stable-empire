@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="560" viewBox="0 0 1000 560">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#17233c"/>
+      <stop offset="1" stop-color="#4f5365"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#000" stop-opacity=".06"/>
+      <stop offset=".7" stop-color="#000" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".35"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="560" fill="url(#sky)"/>
+  <circle cx="780" cy="110" r="55" fill="#f4d890" opacity=".32"/>
+  <path d="M0 225 Q140 170 280 218 T570 210 T1000 195 V560 H0Z" fill="#3c4a39" opacity=".65"/>
+  
+        <rect x="170" y="265" width="410" height="200" fill="#3a2c26"/>
+        <path d="M130 275 L375 135 L620 275 Z" fill="#2f2420"/>
+        <rect x="330" y="340" width="90" height="125" fill="#171413"/>
+        <rect x="235" y="315" width="60" height="55" fill="#f2c66e" opacity=".75"/>
+        <circle cx="790" cy="115" r="48" fill="#f7e7ad" opacity=".85"/>
+        <path d="M0 470 Q220 438 520 468 T1000 464" fill="#3c4a39"/>
+  <rect width="1000" height="560" fill="url(#shade)"/>
+  <rect x="0" y="0" width="1000" height="12" fill="#090a08" opacity=".85"/>
+  <rect x="0" y="548" width="1000" height="12" fill="#090a08" opacity=".85"/>
+  <text x="42" y="520" fill="#f2eadc" font-family="Georgia,serif" font-size="28" font-weight="700">Your Stable — Late Evening</text>
+</svg>
