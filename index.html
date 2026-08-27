@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Stable Empire - browser horse stable management game" />
+  <title>Stable Empire</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">HORSE STABLE MANAGEMENT SIM</div>
+        <h1>Stable Empire</h1>
+      </div>
+      <div class="top-stats">
+        <div><span>💵</span><strong id="money">$0</strong><small>Cash</small></div>
+        <div><span>📅</span><strong id="date">Day 1</strong><small>Date</small></div>
+        <div><span>⚡</span><strong id="energy">100</strong><small>Energy</small></div>
+        <div><span>⭐</span><strong id="reputation">0</strong><small>Reputation</small></div>
+      </div>
+    </header>
+
+    <div class="game-shell">
+      <aside class="sidebar">
+        <div class="stable-card">
+          <div class="stable-mark">SE</div>
+          <div>
+            <strong id="stableNameSidebar">Your Stable</strong>
+            <small id="stableLevelSidebar">Level 1</small>
+          </div>
+        </div>
+
+        <nav id="nav">
+          <button data-view="dashboard" class="active">🏠 Dashboard</button>
+          <button data-view="horses">🐴 Horses</button>
+          <button data-view="stable">🛠️ Stable</button>
+          <button data-view="town">🏘️ Town</button>
+          <button data-view="racing">🏁 Race Track</button>
+          <button data-view="contracts">📋 Contracts</button>
+          <button data-view="staff">👥 Staff</button>
+        </nav>
+
+        <div class="sidebar-actions">
+          <button id="advanceDayBtn" class="primary">End Day</button>
+          <button id="saveBtn">Save Game</button>
+          <button id="exportBtn">Export Save</button>
+          <label class="import-label">
+            Import Save
+            <input id="importInput" type="file" accept=".json,application/json" hidden>
+          </label>
+          <button id="resetBtn" class="danger ghost">Reset Game</button>
+        </div>
+      </aside>
+
+      <main class="content">
+        <section id="dashboardView" class="view active"></section>
+        <section id="horsesView" class="view"></section>
+        <section id="stableView" class="view"></section>
+        <section id="townView" class="view"></section>
+        <section id="racingView" class="view"></section>
+        <section id="contractsView" class="view"></section>
+        <section id="staffView" class="view"></section>
+      </main>
+    </div>
+  </div>
+
+  <div id="newGameModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="eyebrow">NEW CAREER</div>
+      <h2>Build Your Stable Empire</h2>
+      <p>You have inherited a worn-down stable, a little money, and one dependable horse. Turn it into the most respected horse operation in the county.</p>
+      <label>Owner Name
+        <input id="ownerNameInput" maxlength="28" placeholder="Rey Williams" />
+      </label>
+      <label>Stable Name
+        <input id="stableNameInput" maxlength="36" placeholder="Starlight Stables" />
+      </label>
+      <label>Starter Horse
+        <select id="starterHorseInput">
+          <option value="Morgan">Morgan — balanced and dependable</option>
+          <option value="Quarter Horse">Quarter Horse — quick and versatile</option>
+          <option value="Thoroughbred">Thoroughbred — fast but demanding</option>
+          <option value="Mustang">Mustang — hardy and spirited</option>
+          <option value="Shire">Shire — strong and calm</option>
+        </select>
+      </label>
+      <button id="startGameBtn" class="primary large">Start New Game</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
