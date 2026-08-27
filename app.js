@@ -4,10 +4,21 @@ const UPDATE_BACKUP_KEY = "stableEmpireSave_preUpdateBackup_v1";
 const SAVE_META_KEY = "stableEmpireSave_meta_v1";
 const AUDIO_PREF_KEY = "stableEmpireAudio_v2";
 const GAME_PLAYLIST = [
-  { title: "Morning at the Stable", file: "assets/morning-at-the-stable.mp3" },
-  { title: "Cedar Valley Roads", file: "assets/cedar-valley-roads.mp3" },
-  { title: "Hooves at Sundown", file: "assets/hooves-at-sundown.mp3" },
-  { title: "County Fair Lights", file: "assets/county-fair-lights.mp3" }
+  { title: "The Dust and the Divide", file: "assets/kaazoom-the-dust-and-the-divide-cowboy-ballard-455853.mp3" },
+  { title: "Beer Sign Saturday", file: "assets/openmindaudio-country-barroom-anthem-beer-sign-saturday-538385.mp3" },
+  { title: "Fiddle Song", file: "assets/openmindaudio-country-dance-hall-song-fiddle-song-538414.mp3" },
+  { title: "Pickup Truck Anthem", file: "assets/openmindaudio-country-dreamer-anthem-pickup-truck-anthem-538416.mp3" },
+  { title: "Cheap Whiskey", file: "assets/openmindaudio-country-drinking-song-cheap-whiskey-538386.mp3" },
+  { title: "Cold as the Clay", file: "assets/openmindaudio-country-farm-love-song-cold-as-the-clay-538413.mp3" },
+  { title: "Burn the Whole Thing Down", file: "assets/openmindaudio-country-healing-anthem-burn-the-whole-thing-down-538412.mp3" },
+  { title: "Voices That Raised Me", file: "assets/openmindaudio-country-hometown-anthem-voices-that-raised-me-538389.mp3" },
+  { title: "Wind", file: "assets/openmindaudio-emotional-country-road-trip-song-wind-538411.mp3" },
+  { title: "She Still Lingers", file: "assets/openmindaudio-nostalgic-country-love-song-she-still-lingers-538410.mp3" },
+  { title: "Wild to Turn Back", file: "assets/openmindaudio-outlaw-country-song-wild-to-turn-back-538398.mp3" },
+  { title: "Worn Hands", file: "assets/openmindaudio-working-class-country-anthem-worn-hands-538391.mp3" },
+  { title: "Whiskey Roads and Dusty Dreams", file: "assets/phillbuck-whiskey-roads-and-dusty-dreams-1-225935.mp3" },
+  { title: "God's Got My Love Life Handled", file: "assets/tadashikeiji-gods-got-my-love-life-handled-319926.mp3" },
+  { title: "She Took My Truck but Left the Dog", file: "assets/tadashikeiji-she-took-my-truck-but-left-the-dog-432226.mp3" }
 ];
 
 const BREEDS = ["Morgan", "Quarter Horse", "Thoroughbred", "Mustang", "Shire", "Appaloosa", "Arabian", "Standardbred"];
