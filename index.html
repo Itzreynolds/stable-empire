@@ -35,21 +35,59 @@
         <nav id="nav">
           <button data-view="dashboard" class="active">🏠 Dashboard</button>
           <button data-view="horses">🐴 Horses</button>
+          <button data-view="breeding">🧬 Breeding</button>
           <button data-view="stable">🛠️ Stable</button>
-          <button data-view="town">🏘️ Town</button>
-          <button data-view="racing">🏁 Race Track</button>
+          <button data-view="town">🗺️ Map</button>
+          <button data-view="racing">🏁 Events</button>
           <button data-view="contracts">📋 Contracts</button>
+          <button data-view="story">📖 Story</button>
           <button data-view="staff">👥 Staff</button>
         </nav>
+
+        <div class="music-panel">
+          <div class="music-panel-head">
+            <div>
+              <strong>🎵 Stable Radio</strong>
+              <small id="musicStatus">Off</small>
+            </div>
+            <button id="musicToggleBtn" type="button" aria-pressed="false">Play</button>
+          </div>
+
+          <div class="now-playing">
+            <span class="now-playing-label">NOW PLAYING</span>
+            <strong id="currentTrackTitle">Morning at the Stable</strong>
+            <small id="currentTrackNumber">Track 1 of 4 • Shuffle</small>
+          </div>
+
+          <div class="music-transport" aria-label="Music controls">
+            <button id="previousTrackBtn" type="button" aria-label="Previous song" title="Previous song">⏮</button>
+            <button id="musicPlayPauseBtn" type="button" aria-label="Play or pause" title="Play or pause">▶</button>
+            <button id="nextTrackBtn" type="button" aria-label="Next song" title="Next song">⏭</button>
+          </div>
+
+          <label class="volume-control" for="musicVolume">
+            <span>Volume</span>
+            <span id="volumeValue">35%</span>
+          </label>
+          <input id="musicVolume" class="volume-slider" type="range" min="0" max="100" step="1" value="35" aria-label="Music volume">
+        </div>
 
         <div class="sidebar-actions">
           <button id="advanceDayBtn" class="primary">End Day</button>
           <button id="saveBtn">Save Game</button>
-          <button id="exportBtn">Export Save</button>
-          <label class="import-label">
-            Import Save
+          <div class="save-safety">
+            <strong>🛡️ Save-Safe Updates</strong>
+            <small id="saveSafetyStatus">Autosave ready</small>
+          </div>
+          <button id="restoreBackupBtn" class="ghost hidden">Restore Pre-Update Backup</button>
+          <button id="exportBtn">💾 Download Save Backup</button>
+          <label class="import-label load-save-label" for="importInput">
+            📂 Load Saved Game
             <input id="importInput" type="file" accept=".json,application/json" hidden>
           </label>
+          <div class="save-file-help">
+            <small>Downloaded save files can be loaded later on this device or another device.</small>
+          </div>
           <button id="resetBtn" class="danger ghost">Reset Game</button>
         </div>
       </aside>
@@ -57,10 +95,12 @@
       <main class="content">
         <section id="dashboardView" class="view active"></section>
         <section id="horsesView" class="view"></section>
+        <section id="breedingView" class="view"></section>
         <section id="stableView" class="view"></section>
         <section id="townView" class="view"></section>
         <section id="racingView" class="view"></section>
         <section id="contractsView" class="view"></section>
+        <section id="storyView" class="view"></section>
         <section id="staffView" class="view"></section>
       </main>
     </div>
@@ -87,6 +127,54 @@
         </select>
       </label>
       <button id="startGameBtn" class="primary large">Start New Game</button>
+
+      <div class="startup-divider"><span>OR</span></div>
+
+      <div class="startup-load-box">
+        <strong>Already have a Stable Empire save?</strong>
+        <p>Load any Stable Empire JSON save file. Older saves are upgraded automatically.</p>
+        <label class="import-label load-save-label large-load" for="importInput">📂 Load Saved Game</label>
+      </div>
+    </div>
+  </div>
+
+  <audio id="bgMusic" preload="metadata"></audio>
+
+
+  <div id="cutsceneOverlay" class="cutscene-overlay hidden" aria-hidden="true">
+    <div id="cutsceneStage" class="cutscene-stage">
+      <img id="cutsceneBackground" class="cutscene-background" src="" alt="">
+      <div class="cutscene-vignette"></div>
+      <div class="cutscene-letterbox top"></div>
+      <div class="cutscene-letterbox bottom"></div>
+
+      <div class="cutscene-topbar">
+        <div>
+          <span id="cutsceneChapter" class="cutscene-kicker">STORY CINEMATIC</span>
+          <strong id="cutsceneTitle"></strong>
+        </div>
+        <div class="cutscene-top-actions">
+          <button id="cutsceneVoiceBtn" type="button" title="Toggle spoken dialogue">🔊 Voice</button>
+          <button id="cutsceneSkipBtn" type="button">Skip Scene</button>
+        </div>
+      </div>
+
+      <div class="cutscene-character-wrap">
+        <img id="cutsceneCharacter" class="cutscene-character hidden" src="" alt="">
+      </div>
+
+      <div class="cutscene-dialogue">
+        <div class="cutscene-speaker-row">
+          <strong id="cutsceneSpeaker">Narrator</strong>
+          <span id="cutsceneRelationship" class="pill hidden"></span>
+        </div>
+        <p id="cutsceneText"></p>
+        <div id="cutsceneChoices" class="cutscene-choices hidden"></div>
+        <div class="cutscene-controls">
+          <span id="cutsceneProgress">1 / 1</span>
+          <button id="cutsceneContinueBtn" class="primary" type="button">Continue</button>
+        </div>
+      </div>
     </div>
   </div>
 
