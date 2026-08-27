@@ -1,5 +1,5 @@
 const STORAGE_KEY = "stableEmpireSave_v1";
-const SAVE_SCHEMA_VERSION = 10;
+const SAVE_SCHEMA_VERSION = 11;
 const UPDATE_BACKUP_KEY = "stableEmpireSave_preUpdateBackup_v1";
 const SAVE_META_KEY = "stableEmpireSave_meta_v1";
 const AUDIO_PREF_KEY = "stableEmpireAudio_v2";
@@ -63,6 +63,10 @@ const WEATHER_BY_SEASON = {
   ]
 };
 
+const STABLE_LEVEL_CAP = 12;
+const CRAFT_MAX_LEVEL = 15;
+const WORKSHOP_MAX_TIER = 6;
+
 const ESTATE_BUILDINGS = [
   {
     id: "extraBarn",
@@ -70,9 +74,11 @@ const ESTATE_BUILDINGS = [
     icon: "🏚️",
     cost: 1800,
     acres: 2,
-    max: 3,
-    description: "Adds four permanent horse stalls.",
-    effect: "+4 horse capacity"
+    max: 5,
+    unlockLevel: 1,
+    category: "structure",
+    description: "Adds permanent stalls and expands the working barn complex.",
+    effect: "+4 horse capacity per tier"
   },
   {
     id: "paddock",
@@ -80,39 +86,35 @@ const ESTATE_BUILDINGS = [
     icon: "🌿",
     cost: 900,
     acres: 1.5,
-    max: 3,
-    description: "More turnout space helps horses relax and recover.",
-    effect: "Better daily stress recovery"
+    max: 5,
+    unlockLevel: 1,
+    category: "training",
+    description: "Better turnout, fencing and drainage for daily horse recovery.",
+    effect: "More stress recovery +1 capacity per tier"
   },
   {
-    id: "indoorArena",
-    name: "Indoor Arena",
-    icon: "🏟️",
-    cost: 2400,
-    acres: 2,
-    max: 1,
-    description: "Train regardless of bad weather.",
-    effect: "Removes most weather practice penalties"
-  },
-  {
-    id: "foalingBarn",
-    name: "Foaling Barn",
-    icon: "🍼",
-    cost: 2600,
-    acres: 1.5,
-    max: 1,
-    description: "A quiet dedicated building for breeding mares and foals.",
-    effect: "Shorter pregnancy timer + healthier newborns"
-  },
-  {
-    id: "vetWing",
-    name: "Veterinary Wing",
-    icon: "🩺",
-    cost: 3000,
+    id: "roundPen",
+    name: "Training Round Pen",
+    icon: "⭕",
+    cost: 1250,
     acres: 1,
-    max: 1,
-    description: "Basic veterinary facilities on your own property.",
-    effect: "Cheaper treatment + faster injury recovery"
+    max: 4,
+    unlockLevel: 2,
+    category: "training",
+    description: "A dedicated groundwork area for safer, more efficient training.",
+    effect: "Improves regular training gains"
+  },
+  {
+    id: "hayShed",
+    name: "Hay & Bedding Shed",
+    icon: "🛖",
+    cost: 1100,
+    acres: 1,
+    max: 4,
+    unlockLevel: 2,
+    category: "support",
+    description: "Protected storage for hay, straw and stall bedding.",
+    effect: "Occasional free feed + reduced supply pressure"
   },
   {
     id: "feedWarehouse",
@@ -120,31 +122,345 @@ const ESTATE_BUILDINGS = [
     icon: "🌾",
     cost: 1500,
     acres: 1,
-    max: 1,
+    max: 4,
+    unlockLevel: 2,
+    category: "support",
     description: "Bulk feed storage for a growing operation.",
-    effect: "Adds 20 feed immediately and occasional supply savings"
+    effect: "Larger passive feed savings"
+  },
+  {
+    id: "tackRoom",
+    name: "Expanded Tack Room",
+    icon: "🧰",
+    cost: 1650,
+    acres: 0.75,
+    max: 4,
+    unlockLevel: 2,
+    category: "support",
+    description: "Organized tack storage, repair benches and fitting space.",
+    effect: "Cheaper specialization + tack support"
+  },
+  {
+    id: "washBay",
+    name: "Wash & Grooming Bay",
+    icon: "🪣",
+    cost: 1900,
+    acres: 0.75,
+    max: 3,
+    unlockLevel: 3,
+    category: "care",
+    description: "A proper grooming and wash area with drainage and tie rails.",
+    effect: "Improves grooming bond and stress recovery"
+  },
+  {
+    id: "indoorArena",
+    name: "Indoor Arena",
+    icon: "🏟️",
+    cost: 2600,
+    acres: 2,
+    max: 3,
+    unlockLevel: 3,
+    category: "training",
+    description: "Train regardless of difficult weather and poor outdoor footing.",
+    effect: "Weather protection + practice quality"
+  },
+  {
+    id: "foalingBarn",
+    name: "Foaling Barn",
+    icon: "🍼",
+    cost: 2900,
+    acres: 1.5,
+    max: 3,
+    unlockLevel: 4,
+    category: "care",
+    description: "A quiet dedicated building for breeding mares and newborn foals.",
+    effect: "Shorter pregnancy timer + healthier foals"
+  },
+  {
+    id: "vetWing",
+    name: "Veterinary Wing",
+    icon: "🩺",
+    cost: 3400,
+    acres: 1,
+    max: 3,
+    unlockLevel: 4,
+    category: "care",
+    description: "On-site treatment rooms, recovery stalls and medical storage.",
+    effect: "Lower treatment cost + faster recovery"
+  },
+  {
+    id: "staffQuarters",
+    name: "Staff Quarters",
+    icon: "🛏️",
+    cost: 3600,
+    acres: 1.25,
+    max: 3,
+    unlockLevel: 5,
+    category: "structure",
+    description: "Housing and facilities for a larger professional stable crew.",
+    effect: "Reduces daily staff wage pressure"
+  },
+  {
+    id: "studBarn",
+    name: "Stud & Breeding Barn",
+    icon: "🐎",
+    cost: 4200,
+    acres: 2,
+    max: 3,
+    unlockLevel: 6,
+    category: "care",
+    description: "A premium breeding barn for established bloodline programs.",
+    effect: "Lower breeding fees + breeding support"
   },
   {
     id: "trophyHall",
     name: "Trophy Hall",
     icon: "🏆",
-    cost: 3200,
+    cost: 4500,
     acres: 1,
-    max: 1,
-    description: "Display your stable's competition history to visitors.",
-    effect: "+1 extra reputation for competition wins"
+    max: 3,
+    unlockLevel: 6,
+    category: "prestige",
+    description: "Display your stable's competition history to clients and rivals.",
+    effect: "Extra reputation from competition wins"
   },
   {
     id: "privateTrack",
     name: "Private Training Track",
     icon: "🏁",
-    cost: 4500,
+    cost: 5600,
     acres: 3,
-    max: 1,
+    max: 4,
+    unlockLevel: 6,
+    category: "prestige",
     description: "A private track for serious competition preparation.",
     effect: "Improved practice gains"
   }
 ];
+
+const CRAFT_MATERIALS = [
+  { id: "grain", name: "Grain Sack", icon: "🌾", qty: 6, cost: 85 },
+  { id: "lumber", name: "Lumber", icon: "🪵", qty: 5, cost: 120 },
+  { id: "iron", name: "Iron Stock", icon: "⚙️", qty: 4, cost: 145 },
+  { id: "leather", name: "Leather", icon: "🟫", qty: 4, cost: 135 },
+  { id: "cloth", name: "Heavy Cloth", icon: "🧵", qty: 5, cost: 95 },
+  { id: "herbs", name: "Herbs", icon: "🌿", qty: 5, cost: 105 },
+  { id: "rope", name: "Rope", icon: "🪢", qty: 4, cost: 90 },
+  { id: "nails", name: "Nails & Fasteners", icon: "🔩", qty: 6, cost: 100 }
+];
+
+const CRAFT_ITEM_NAMES = {
+  feed: "Feed",
+  treats: "Treats",
+  brushes: "Brushes",
+  medicine: "Medicine",
+  horseshoes: "Horseshoes",
+  grain: "Grain",
+  lumber: "Lumber",
+  iron: "Iron",
+  leather: "Leather",
+  cloth: "Heavy Cloth",
+  herbs: "Herbs",
+  rope: "Rope",
+  nails: "Nails",
+  ropeBundles: "Braided Lead Ropes",
+  repairKits: "Repair Kits",
+  treatedLumber: "Treated Timber",
+  ironFittings: "Iron Fittings",
+  stallPanels: "Stall Panel Kits",
+  tackSets: "Leather Tack Sets",
+  arenaPanels: "Arena Rail Kits",
+  vetCrates: "Veterinary Crates",
+  storageCrates: "Storage Crates",
+  gateKits: "Paddock Gate Kits",
+  competitionTack: "Competition Tack",
+  farrierKits: "Farrier Chests",
+  foalingKits: "Foaling Care Crates",
+  trackKits: "Track Barrier Sets",
+  trophyCases: "Trophy Display Cases",
+  barnFrames: "Reinforced Barn Frames",
+  masterMaintenance: "Master Maintenance Kits",
+  proTrainingGear: "Professional Training Gear",
+  estateHardware: "Estate Hardware Bundles",
+  championTack: "Championship Tack Sets",
+  masterFrames: "Master Stable Frames",
+  legacyKits: "Legacy Craftsman's Kits"
+};
+
+const CRAFT_RECIPES = [
+  {
+    id: "feed-bundle", name: "Hay & Grain Feed Bundle", icon: "🌾", category: "Horse Care",
+    level: 1, workshop: 1, work: 1, xp: 10,
+    ingredients: { grain: 3 }, outputs: { feed: 5 },
+    description: "Stretch raw grain into a useful stable feed batch."
+  },
+  {
+    id: "treat-batch", name: "Herbal Treat Batch", icon: "🍎", category: "Horse Care",
+    level: 1, workshop: 1, work: 1, xp: 12,
+    ingredients: { grain: 1, herbs: 1 }, outputs: { treats: 4 },
+    description: "Simple reward treats for bonding and daily handling."
+  },
+  {
+    id: "lead-rope", name: "Braided Lead Rope", icon: "🪢", category: "Tack",
+    level: 1, workshop: 1, work: 1, xp: 14,
+    ingredients: { rope: 2, leather: 1 }, outputs: { ropeBundles: 1 },
+    description: "A sturdy lead rope used in later gates, tack and training projects."
+  },
+  {
+    id: "grooming-brush", name: "Grooming Brush", icon: "🪮", category: "Horse Care",
+    level: 2, workshop: 1, work: 2, xp: 18,
+    ingredients: { lumber: 1, cloth: 1 }, outputs: { brushes: 1 },
+    description: "A durable grooming brush for daily horse care."
+  },
+  {
+    id: "horseshoe-set", name: "Horseshoe Set", icon: "🧲", category: "Farrier",
+    level: 2, workshop: 1, work: 2, xp: 20,
+    ingredients: { iron: 2, nails: 1 }, outputs: { horseshoes: 4 },
+    description: "Forge and finish a full set of horseshoes."
+  },
+  {
+    id: "medicine-satchel", name: "Medicine Satchel", icon: "🩺", category: "Horse Care",
+    level: 2, workshop: 1, work: 2, xp: 22,
+    ingredients: { herbs: 3, cloth: 1 }, outputs: { medicine: 1 },
+    description: "Basic stable medicine supplies for routine treatment."
+  },
+  {
+    id: "repair-kit", name: "Property Repair Kit", icon: "🛠️", category: "Construction",
+    level: 3, workshop: 1, work: 2, xp: 26,
+    ingredients: { lumber: 2, iron: 1, nails: 2 }, outputs: { repairKits: 1 },
+    description: "Hardware and timber prepared for structural repairs."
+  },
+  {
+    id: "treated-timber", name: "Treated Timber Batch", icon: "🪵", category: "Construction",
+    level: 3, workshop: 1, work: 3, xp: 30,
+    ingredients: { lumber: 4, nails: 1 }, outputs: { treatedLumber: 2 },
+    description: "Prepared structural timber used throughout the estate."
+  },
+  {
+    id: "iron-fittings", name: "Iron Fittings", icon: "⚙️", category: "Construction",
+    level: 3, workshop: 1, work: 3, xp: 32,
+    ingredients: { iron: 3, nails: 2 }, outputs: { ironFittings: 2 },
+    description: "Brackets, hinges and fittings required for stronger facilities."
+  },
+  {
+    id: "stall-panels", name: "Stall Panel Kit", icon: "🚪", category: "Construction",
+    level: 4, workshop: 2, work: 3, xp: 38,
+    ingredients: { treatedLumber: 2, ironFittings: 1 }, outputs: { stallPanels: 1 },
+    description: "A finished partition set for upgraded barns and stalls."
+  },
+  {
+    id: "leather-tack", name: "Leather Tack Set", icon: "🧰", category: "Tack",
+    level: 4, workshop: 2, work: 3, xp: 40,
+    ingredients: { leather: 3, rope: 1, iron: 1 }, outputs: { tackSets: 1 },
+    description: "A fitted set of working tack for training and facility upgrades."
+  },
+  {
+    id: "arena-rails", name: "Arena Rail Kit", icon: "🏟️", category: "Construction",
+    level: 5, workshop: 2, work: 4, xp: 48,
+    ingredients: { treatedLumber: 3, ironFittings: 2 }, outputs: { arenaPanels: 1 },
+    description: "Heavy rail sections designed for arenas and round pens."
+  },
+  {
+    id: "vet-crate", name: "Veterinary Supply Crate", icon: "🩺", category: "Horse Care",
+    level: 5, workshop: 2, work: 4, xp: 50,
+    ingredients: { medicine: 2, cloth: 2, lumber: 1 }, outputs: { vetCrates: 1 },
+    description: "Organized treatment equipment for advanced horse-care facilities."
+  },
+  {
+    id: "storage-crate", name: "Feed Storage Crate", icon: "📦", category: "Construction",
+    level: 6, workshop: 3, work: 4, xp: 56,
+    ingredients: { treatedLumber: 2, ironFittings: 1, rope: 1 }, outputs: { storageCrates: 1 },
+    description: "Reinforced storage for warehouses and feed buildings."
+  },
+  {
+    id: "gate-kit", name: "Paddock Gate Kit", icon: "🚧", category: "Construction",
+    level: 6, workshop: 3, work: 4, xp: 58,
+    ingredients: { treatedLumber: 2, ironFittings: 2, ropeBundles: 1 }, outputs: { gateKits: 1 },
+    description: "A complete reinforced gate system for paddocks and work yards."
+  },
+  {
+    id: "competition-tack", name: "Competition Tack", icon: "🎽", category: "Tack",
+    level: 7, workshop: 3, work: 4, xp: 64,
+    ingredients: { tackSets: 1, leather: 2, cloth: 2 }, outputs: { competitionTack: 1 },
+    description: "Higher-grade tack built for serious competition preparation."
+  },
+  {
+    id: "farrier-chest", name: "Farrier Chest", icon: "🧲", category: "Farrier",
+    level: 7, workshop: 3, work: 4, xp: 66,
+    ingredients: { ironFittings: 2, leather: 1, treatedLumber: 1 }, outputs: { farrierKits: 1 },
+    description: "A complete farrier workstation chest for advanced service areas."
+  },
+  {
+    id: "foaling-crate", name: "Foaling Care Crate", icon: "🍼", category: "Horse Care",
+    level: 8, workshop: 3, work: 5, xp: 72,
+    ingredients: { vetCrates: 1, cloth: 2, herbs: 2 }, outputs: { foalingKits: 1 },
+    description: "Specialized supplies for mares, foals and breeding facilities."
+  },
+  {
+    id: "track-barriers", name: "Track Barrier Set", icon: "🏁", category: "Training",
+    level: 8, workshop: 3, work: 5, xp: 74,
+    ingredients: { arenaPanels: 1, treatedLumber: 2, ropeBundles: 1 }, outputs: { trackKits: 1 },
+    description: "Track markers, barriers and rail sections for private training grounds."
+  },
+  {
+    id: "trophy-case", name: "Trophy Display Case", icon: "🏆", category: "Prestige",
+    level: 9, workshop: 4, work: 5, xp: 82,
+    ingredients: { treatedLumber: 3, cloth: 2, ironFittings: 1 }, outputs: { trophyCases: 1 },
+    description: "A finished display case worthy of a major competition record."
+  },
+  {
+    id: "barn-frame", name: "Reinforced Barn Frame", icon: "🏚️", category: "Construction",
+    level: 9, workshop: 4, work: 5, xp: 86,
+    ingredients: { treatedLumber: 4, ironFittings: 3 }, outputs: { barnFrames: 1 },
+    description: "A heavy structural frame for high-tier estate construction."
+  },
+  {
+    id: "master-maintenance", name: "Master Maintenance Kit", icon: "🛠️", category: "Construction",
+    level: 10, workshop: 4, work: 5, xp: 94,
+    ingredients: { repairKits: 2, ironFittings: 2, treatedLumber: 2 }, outputs: { masterMaintenance: 1 },
+    description: "Professional-grade materials for advanced property upgrades."
+  },
+  {
+    id: "pro-training", name: "Professional Training Gear", icon: "🎯", category: "Training",
+    level: 11, workshop: 4, work: 6, xp: 104,
+    ingredients: { arenaPanels: 1, tackSets: 1, rope: 2 }, outputs: { proTrainingGear: 1 },
+    description: "Specialized training equipment for elite facilities."
+  },
+  {
+    id: "estate-hardware", name: "Estate Hardware Bundle", icon: "⚙️", category: "Construction",
+    level: 12, workshop: 5, work: 6, xp: 116,
+    ingredients: { ironFittings: 4, barnFrames: 1, masterMaintenance: 1 }, outputs: { estateHardware: 1 },
+    description: "Heavy engineered hardware for late-game estate construction."
+  },
+  {
+    id: "champion-tack", name: "Championship Tack Set", icon: "🥇", category: "Prestige",
+    level: 13, workshop: 5, work: 6, xp: 128,
+    ingredients: { competitionTack: 1, leather: 4, cloth: 3 }, outputs: { championTack: 1 },
+    description: "Master-quality tack reserved for top-tier competition programs."
+  },
+  {
+    id: "master-frame", name: "Master Stable Frame", icon: "🏗️", category: "Construction",
+    level: 14, workshop: 6, work: 7, xp: 142,
+    ingredients: { barnFrames: 2, estateHardware: 1, treatedLumber: 4 }, outputs: { masterFrames: 1 },
+    description: "A massive engineered frame used in the final estate tiers."
+  },
+  {
+    id: "legacy-kit", name: "Legacy Craftsman's Kit", icon: "👑", category: "Masterwork",
+    level: 15, workshop: 6, work: 8, xp: 160,
+    ingredients: { masterFrames: 1, championTack: 1, masterMaintenance: 2 }, outputs: { legacyKits: 1 },
+    description: "The final masterwork component required to completely finish the Stable Empire."
+  }
+];
+
+const WORKSHOP_LEVEL_CAPS = {
+  1: 3,
+  2: 5,
+  3: 8,
+  4: 11,
+  5: 13,
+  6: 15
+};
+
 
 const CUSTOMER_NAMES = [
   "Mae Holloway", "Catherine Monroe", "Jonah Reed", "Abigail Porter",
@@ -796,34 +1112,63 @@ const CUTSCENE_CHARACTERS = {
   eleanor: {
     name: "Eleanor Rivers",
     image: "assets/characters/eleanor-rivers.svg",
-    voice: { pitch: 0.92, rate: 0.92 }
+    voice: {
+      pitch: 0.96, rate: 0.91,
+      preferred: ["aria", "jenny", "sonia", "samantha", "female", "natural", "online"]
+    }
   },
   mae: {
     name: "Mae Holloway",
     image: "assets/characters/mae-holloway.svg",
-    voice: { pitch: 1.08, rate: 0.98 }
+    voice: {
+      pitch: 1.03, rate: 0.96,
+      preferred: ["jenny", "aria", "samantha", "female", "natural", "online"]
+    }
   },
   thomas: {
     name: "Thomas Bell",
     image: "assets/characters/thomas-bell.svg",
-    voice: { pitch: 0.86, rate: 0.94 }
+    voice: {
+      pitch: 0.91, rate: 0.90,
+      preferred: ["guy", "ryan", "davis", "mark", "male", "natural", "online"]
+    }
   },
   samuel: {
     name: "Samuel Mercer",
     image: "assets/characters/samuel-mercer.svg",
-    voice: { pitch: 0.82, rate: 1.03 }
+    voice: {
+      pitch: 0.84, rate: 0.88,
+      preferred: ["davis", "guy", "george", "david", "male", "natural", "online"]
+    }
   },
   clara: {
     name: "Dr. Clara Whitmore",
     image: "assets/characters/clara-whitmore.svg",
-    voice: { pitch: 1.04, rate: 0.96 }
+    voice: {
+      pitch: 1.0, rate: 0.92,
+      preferred: ["sonia", "aria", "jenny", "samantha", "female", "natural", "online"]
+    }
   },
   jonah: {
     name: "Jonah Reed",
     image: "assets/characters/jonah-reed.svg",
-    voice: { pitch: 0.78, rate: 0.9 }
+    voice: {
+      pitch: 0.94, rate: 0.93,
+      preferred: ["ryan", "guy", "mark", "male", "natural", "online"]
+    }
   }
 };
+
+const NARRATOR_VOICE_PROFILE = {
+  pitch: 0.90,
+  rate: 0.86,
+  preferred: ["guy", "davis", "george", "david", "male", "natural", "online"]
+};
+
+// Optional real dialogue files.
+// If a line has `audio: "assets/voices/...mp3"`, Stable Empire plays that recording.
+// Otherwise it automatically falls back to the best natural browser voice available.
+let activeCutsceneVoiceAudio = null;
 
 const CUTSCENES = [
   {
@@ -1070,7 +1415,49 @@ const DEFAULT_STATE = () => ({
     treats: 5,
     brushes: 1,
     medicine: 1,
-    horseshoes: 0
+    horseshoes: 0,
+
+    // Raw workshop materials
+    grain: 8,
+    lumber: 6,
+    iron: 4,
+    leather: 3,
+    cloth: 3,
+    herbs: 3,
+    rope: 2,
+    nails: 4,
+
+    // Crafted components
+    ropeBundles: 0,
+    repairKits: 0,
+    treatedLumber: 0,
+    ironFittings: 0,
+    stallPanels: 0,
+    tackSets: 0,
+    arenaPanels: 0,
+    vetCrates: 0,
+    storageCrates: 0,
+    gateKits: 0,
+    competitionTack: 0,
+    farrierKits: 0,
+    foalingKits: 0,
+    trackKits: 0,
+    trophyCases: 0,
+    barnFrames: 0,
+    masterMaintenance: 0,
+    proTrainingGear: 0,
+    estateHardware: 0,
+    championTack: 0,
+    masterFrames: 0,
+    legacyKits: 0
+  },
+  crafting: {
+    level: 1,
+    xp: 0,
+    workshopTier: 1,
+    workUnits: 8,
+    supplierOrdersToday: 0,
+    totalCrafts: 0
   },
   playerSkills: {
     riding: 1,
@@ -1134,10 +1521,16 @@ const DEFAULT_STATE = () => ({
     buildings: {
       extraBarn: 0,
       paddock: 1,
+      roundPen: 0,
+      hayShed: 0,
+      feedWarehouse: 0,
+      tackRoom: 0,
+      washBay: 0,
       indoorArena: 0,
       foalingBarn: 0,
       vetWing: 0,
-      feedWarehouse: 0,
+      staffQuarters: 0,
+      studBarn: 0,
       trophyHall: 0,
       privateTrack: 0
     }
@@ -1154,7 +1547,7 @@ const DEFAULT_STATE = () => ({
     highBidderName: "Riverview Stables",
     daysLeft: 1
   },
-  stats: { horsesTrained: 0, horsesSold: 0, contractsCompleted: 0, moneyEarned: 0 },
+  stats: { horsesTrained: 0, horsesSold: 0, contractsCompleted: 0, moneyEarned: 0, itemsCrafted: 0 },
   log: ["You arrived at your inherited stable. It needs work, but it is yours."],
   lastRandomEventDay: 0
 });
@@ -1305,7 +1698,7 @@ function maybeInjureHorse(h, intensity = 1) {
   chance += Math.max(0, 55 - h.hoofCare) * 0.001;
 
   if (h.trait === "Hardy") chance *= 0.65;
-  if (estateBuildingCount("vetWing")) chance *= 0.85;
+  if (estateBuildingCount("vetWing")) chance *= Math.max(0.68, 1 - estateBuildingCount("vetWing") * 0.10);
 
   if (Math.random() >= chance) return false;
 
@@ -1538,6 +1931,14 @@ function migrateSaveData(parsed, rawForBackup = null) {
   migrated.stats = deepMergeSave(defaults.stats, parsed?.stats || {});
 
   migrated.world = deepMergeSave(defaults.world, parsed?.world || {});
+  migrated.crafting = deepMergeSave(defaults.crafting, parsed?.crafting || {});
+  migrated.crafting.level = clamp(Number(migrated.crafting.level || 1), 1, CRAFT_MAX_LEVEL);
+  migrated.crafting.xp = Math.max(0, Number(migrated.crafting.xp || 0));
+  migrated.crafting.workshopTier = clamp(Number(migrated.crafting.workshopTier || 1), 1, WORKSHOP_MAX_TIER);
+  migrated.crafting.workUnits = Math.max(0, Number(migrated.crafting.workUnits ?? dailyCraftWorkUnits(migrated.crafting.workshopTier)));
+  migrated.crafting.supplierOrdersToday = Math.max(0, Number(migrated.crafting.supplierOrdersToday || 0));
+  migrated.crafting.totalCrafts = Math.max(0, Number(migrated.crafting.totalCrafts || 0));
+
   migrated.estate = deepMergeSave(defaults.estate, parsed?.estate || {});
   migrated.estate.buildings = deepMergeSave(defaults.estate.buildings, parsed?.estate?.buildings || {});
 
@@ -1904,6 +2305,285 @@ function weatherSummary() {
   return `${weather.icon} ${weather.name}`;
 }
 
+
+function inventoryLabel(id) {
+  return CRAFT_ITEM_NAMES[id] || id.replace(/([A-Z])/g, " $1").replace(/^./, c => c.toUpperCase());
+}
+
+function inventoryAmount(id) {
+  return Number(state.inventory?.[id] || 0);
+}
+
+function hasInventoryItems(requirements = {}) {
+  return Object.entries(requirements).every(([id, qty]) => inventoryAmount(id) >= Number(qty || 0));
+}
+
+function consumeInventoryItems(requirements = {}) {
+  Object.entries(requirements).forEach(([id, qty]) => {
+    state.inventory[id] = Math.max(0, inventoryAmount(id) - Number(qty || 0));
+  });
+}
+
+function addInventoryItems(outputs = {}) {
+  Object.entries(outputs).forEach(([id, qty]) => {
+    state.inventory[id] = inventoryAmount(id) + Number(qty || 0);
+  });
+}
+
+function formatInventoryRequirement(requirements = {}) {
+  const entries = Object.entries(requirements);
+  if (!entries.length) return "No crafted components required";
+  return entries.map(([id, qty]) => {
+    const owned = inventoryAmount(id);
+    const ok = owned >= qty;
+    return `<span class="material-req ${ok ? "ok" : "missing"}">${escapeHtml(inventoryLabel(id))} ${owned}/${qty}</span>`;
+  }).join("");
+}
+
+function formatRecipeItems(items = {}) {
+  return Object.entries(items).map(([id, qty]) =>
+    `<span class="recipe-chip">${escapeHtml(inventoryLabel(id))} ×${qty}</span>`
+  ).join("");
+}
+
+function craftXpNeededForLevel(level) {
+  if (level <= 1) return 0;
+  let total = 0;
+  for (let current = 1; current < level; current += 1) {
+    total += 90 + current * 55 + current * current * 16;
+  }
+  return total;
+}
+
+function workshopCraftLevelCap(tier = state.crafting.workshopTier) {
+  return WORKSHOP_LEVEL_CAPS[clamp(Number(tier || 1), 1, WORKSHOP_MAX_TIER)] || 3;
+}
+
+function dailyCraftWorkUnits(tier = state.crafting?.workshopTier || 1) {
+  return 5 + clamp(Number(tier || 1), 1, WORKSHOP_MAX_TIER) * 3;
+}
+
+function dailySupplierOrderLimit(tier = state.crafting?.workshopTier || 1) {
+  return 4 + clamp(Number(tier || 1), 1, WORKSHOP_MAX_TIER);
+}
+
+function craftingRankName(level = state.crafting.level) {
+  if (level >= 15) return "Master Stablewright";
+  if (level >= 12) return "Master Craftsman";
+  if (level >= 9) return "Senior Stablewright";
+  if (level >= 6) return "Journeyman";
+  if (level >= 3) return "Apprentice";
+  return "Novice";
+}
+
+function gainCraftXp(amount) {
+  const levelCap = workshopCraftLevelCap();
+  if (state.crafting.level >= levelCap) return false;
+
+  state.crafting.xp += Math.max(0, Number(amount || 0));
+  let leveled = false;
+
+  while (
+    state.crafting.level < levelCap &&
+    state.crafting.level < CRAFT_MAX_LEVEL &&
+    state.crafting.xp >= craftXpNeededForLevel(state.crafting.level + 1)
+  ) {
+    state.crafting.level += 1;
+    leveled = true;
+    addLog(`Craftsmanship reached Level ${state.crafting.level}: ${craftingRankName()}.`);
+  }
+
+  return leveled;
+}
+
+function craftingProgressData() {
+  const level = state.crafting.level;
+  const cap = workshopCraftLevelCap();
+  if (level >= CRAFT_MAX_LEVEL) {
+    return { pct: 100, current: state.crafting.xp, next: state.crafting.xp, text: "Maximum craftsmanship reached" };
+  }
+  if (level >= cap) {
+    return { pct: 100, current: state.crafting.xp, next: craftXpNeededForLevel(level + 1), text: `Workshop Tier ${state.crafting.workshopTier + 1} required to progress` };
+  }
+
+  const floor = craftXpNeededForLevel(level);
+  const next = craftXpNeededForLevel(level + 1);
+  const pct = clamp(((state.crafting.xp - floor) / Math.max(1, next - floor)) * 100, 0, 100);
+  return {
+    pct,
+    current: Math.max(0, state.crafting.xp - floor),
+    next: next - floor,
+    text: `${Math.max(0, state.crafting.xp - floor).toLocaleString()} / ${(next - floor).toLocaleString()} XP`
+  };
+}
+
+function workshopUpgradeCost(nextTier) {
+  const table = { 2: 1500, 3: 3400, 4: 6500, 5: 10500, 6: 16500 };
+  return table[nextTier] || 0;
+}
+
+function workshopUpgradeRequirements(nextTier) {
+  const table = {
+    2: { repairKits: 1, ironFittings: 2 },
+    3: { treatedLumber: 4, stallPanels: 2 },
+    4: { arenaPanels: 2, tackSets: 2, vetCrates: 1 },
+    5: { barnFrames: 2, masterMaintenance: 1 },
+    6: { estateHardware: 1, championTack: 1 }
+  };
+  return table[nextTier] || {};
+}
+
+function upgradeWorkshop() {
+  const current = state.crafting.workshopTier;
+  if (current >= WORKSHOP_MAX_TIER) return toast("Your workshop is already fully upgraded.");
+
+  const nextTier = current + 1;
+  const cost = workshopUpgradeCost(nextTier);
+  const requirements = workshopUpgradeRequirements(nextTier);
+
+  if (!hasInventoryItems(requirements)) return toast("You are missing crafted components for the workshop upgrade.");
+  if (!spend(cost)) return;
+
+  consumeInventoryItems(requirements);
+  state.crafting.workshopTier = nextTier;
+  state.crafting.workUnits = dailyCraftWorkUnits(nextTier);
+  state.reputation += 2;
+  addLog(`Upgraded the Stable Workshop to Tier ${nextTier}. Crafting level cap is now ${workshopCraftLevelCap(nextTier)}.`);
+  saveGame(false);
+  renderAll();
+  toast(`Workshop Tier ${nextTier} completed.`);
+}
+
+function orderCraftMaterial(materialId) {
+  const material = CRAFT_MATERIALS.find(item => item.id === materialId);
+  if (!material) return;
+
+  const limit = dailySupplierOrderLimit();
+  if (state.crafting.supplierOrdersToday >= limit) {
+    return toast(`The supplier has filled your ${limit} workshop orders for today.`);
+  }
+  if (!spend(material.cost)) return;
+
+  state.inventory[material.id] = inventoryAmount(material.id) + material.qty;
+  state.crafting.supplierOrdersToday += 1;
+  addLog(`Ordered ${material.qty} ${material.name.toLowerCase()} for the workshop.`);
+  saveGame(false);
+  renderAll();
+}
+
+function craftRecipe(recipeId) {
+  const recipe = CRAFT_RECIPES.find(item => item.id === recipeId);
+  if (!recipe) return;
+
+  if (state.crafting.level < recipe.level) return toast(`Craftsmanship Level ${recipe.level} is required.`);
+  if (state.crafting.workshopTier < recipe.workshop) return toast(`Workshop Tier ${recipe.workshop} is required.`);
+  if (state.crafting.workUnits < recipe.work) return toast("You do not have enough workshop labor left today.");
+  if (!hasInventoryItems(recipe.ingredients)) return toast("You are missing materials for that recipe.");
+
+  consumeInventoryItems(recipe.ingredients);
+  addInventoryItems(recipe.outputs);
+  state.crafting.workUnits -= recipe.work;
+  state.crafting.totalCrafts += 1;
+  state.stats.itemsCrafted = Number(state.stats.itemsCrafted || 0) + 1;
+
+  const leveled = gainCraftXp(recipe.xp);
+  addLog(`Crafted ${recipe.name}${leveled ? ` and reached Craftsmanship Level ${state.crafting.level}` : ""}.`);
+  saveGame(false);
+  renderAll();
+  toast(`${recipe.name} crafted.`);
+}
+
+function facilityUpgradeCost(building, currentTier) {
+  const multiplier = 1 + currentTier * 0.62 + currentTier * currentTier * 0.16;
+  return Math.max(building.cost, Math.round((building.cost * multiplier) / 50) * 50);
+}
+
+function facilityCraftRequirements(building, nextTier) {
+  const category = building.category || "structure";
+
+  if (nextTier === 1) {
+    if (building.id === "indoorArena") return { stallPanels: 1, ironFittings: 1 };
+    if (building.id === "foalingBarn") return { stallPanels: 1, vetCrates: 1 };
+    if (building.id === "vetWing") return { vetCrates: 1, repairKits: 1 };
+    if (building.id === "staffQuarters") return { stallPanels: 1, treatedLumber: 2 };
+    if (building.id === "studBarn") return { stallPanels: 2, tackSets: 1 };
+    if (building.id === "trophyHall") return { trophyCases: 1 };
+    if (building.id === "privateTrack") return { trackKits: 1, arenaPanels: 1 };
+    return {};
+  }
+
+  const tierRequirements = {
+    structure: {
+      2: { repairKits: 1, treatedLumber: 2 },
+      3: { stallPanels: 2, ironFittings: 2 },
+      4: { barnFrames: 1, masterMaintenance: 1 },
+      5: { estateHardware: 1, masterFrames: 1 }
+    },
+    training: {
+      2: { gateKits: 1 },
+      3: { arenaPanels: 1, tackSets: 1 },
+      4: { trackKits: 1, proTrainingGear: 1 },
+      5: { estateHardware: 1, championTack: 1 }
+    },
+    support: {
+      2: { repairKits: 1, storageCrates: 1 },
+      3: { treatedLumber: 2, ironFittings: 2 },
+      4: { masterMaintenance: 1, estateHardware: 1 }
+    },
+    care: {
+      2: { vetCrates: 1, treatedLumber: 2 },
+      3: { foalingKits: 1, masterMaintenance: 1 }
+    },
+    prestige: {
+      2: { trophyCases: 1, competitionTack: 1 },
+      3: { championTack: 1, estateHardware: 1 },
+      4: { masterFrames: 1, legacyKits: 1 }
+    }
+  };
+
+  return tierRequirements[category]?.[nextTier] || {};
+}
+
+function facilityRequiredStableLevel(building, nextTier) {
+  return Math.min(STABLE_LEVEL_CAP, Number(building.unlockLevel || 1) + Math.max(0, nextTier - 1));
+}
+
+function averageStableCondition() {
+  const values = Object.values(state.condition).map(Number);
+  return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 100;
+}
+
+function stableExpansionRequirements(nextLevel) {
+  const table = {
+    4: { repairKits: 2 },
+    5: { treatedLumber: 4, ironFittings: 2 },
+    6: { stallPanels: 2, repairKits: 2 },
+    7: { barnFrames: 1, gateKits: 1 },
+    8: { barnFrames: 2, arenaPanels: 1 },
+    9: { masterMaintenance: 1, tackSets: 2 },
+    10: { estateHardware: 1, barnFrames: 2 },
+    11: { masterFrames: 1, masterMaintenance: 2 },
+    12: { legacyKits: 1, estateHardware: 1 }
+  };
+  return table[nextLevel] || {};
+}
+
+function stableConditionRequirement(nextLevel) {
+  if (nextLevel <= 3) return 0;
+  return Math.min(92, 66 + nextLevel * 2);
+}
+
+function estateCompletionPercent() {
+  const stableScore = clamp((state.stableLevel - 1) / Math.max(1, STABLE_LEVEL_CAP - 1), 0, 1);
+  const totalFacilityTiers = ESTATE_BUILDINGS.reduce((sum, building) => sum + building.max, 0);
+  const builtFacilityTiers = ESTATE_BUILDINGS.reduce((sum, building) => sum + Math.min(building.max, estateBuildingCount(building.id)), 0);
+  const facilityScore = totalFacilityTiers ? builtFacilityTiers / totalFacilityTiers : 0;
+  const workshopScore = (state.crafting.workshopTier - 1) / Math.max(1, WORKSHOP_MAX_TIER - 1);
+  const craftScore = (state.crafting.level - 1) / Math.max(1, CRAFT_MAX_LEVEL - 1);
+
+  return Math.round((stableScore * .30 + facilityScore * .40 + workshopScore * .15 + craftScore * .15) * 100);
+}
+
 function usedEstateAcres() {
   return ESTATE_BUILDINGS.reduce((sum, building) => {
     return sum + estateBuildingCount(building.id) * building.acres;
@@ -1923,21 +2603,30 @@ function buildEstateFacility(id) {
   if (!building) return;
 
   const current = estateBuildingCount(id);
-  if (current >= building.max) return toast(`${building.name} is already at its maximum level.`);
-  if (availableEstateAcres() < building.acres) return toast("You need more land before building this facility.");
-  if (!spend(building.cost)) return;
+  const nextTier = current + 1;
+  const requiredStableLevel = facilityRequiredStableLevel(building, nextTier);
+  const requirements = facilityCraftRequirements(building, nextTier);
+  const cost = facilityUpgradeCost(building, current);
 
-  state.estate.buildings[id] = current + 1;
+  if (current >= building.max) return toast(`${building.name} is already at its maximum tier.`);
+  if (state.stableLevel < requiredStableLevel) return toast(`Stable Level ${requiredStableLevel} is required for this facility tier.`);
+  if (availableEstateAcres() < building.acres) return toast("You need more land before building this facility.");
+  if (!hasInventoryItems(requirements)) return toast("You are missing crafted components for this facility upgrade.");
+  if (!spend(cost)) return;
+
+  consumeInventoryItems(requirements);
+  state.estate.buildings[id] = nextTier;
 
   if (id === "extraBarn") state.capacity += 4;
   if (id === "paddock") state.capacity += 1;
-  if (id === "feedWarehouse" && current === 0) state.inventory.feed += 20;
+  if (id === "feedWarehouse") state.inventory.feed += 8 + nextTier * 4;
+  if (id === "hayShed") state.inventory.feed += 5 + nextTier * 3;
 
-  state.reputation += 2;
-  addLog(`Built ${building.name} on the stable estate.`);
+  state.reputation += 1 + Math.ceil(nextTier / 2);
+  addLog(`Upgraded ${building.name} to Tier ${nextTier}.`);
   saveGame(false);
   renderAll();
-  toast(`${building.name} completed.`);
+  toast(`${building.name} Tier ${nextTier} completed.`);
 }
 
 function buyEstateLand() {
@@ -1974,7 +2663,9 @@ function eligibleBreedingStallions() {
 }
 
 function breedingFee() {
-  return estateBuildingCount("foalingBarn") ? 175 : 250;
+  let fee = estateBuildingCount("foalingBarn") ? 175 : 250;
+  fee -= estateBuildingCount("studBarn") * 20;
+  return Math.max(100, fee);
 }
 
 function breedSelectedHorses() {
@@ -2442,6 +3133,69 @@ function startCutscene(sceneId, { replay = false } = {}) {
   renderCutsceneLine();
 }
 
+function stopCutsceneVoice() {
+  if (activeCutsceneVoiceAudio) {
+    try {
+      activeCutsceneVoiceAudio.pause();
+      activeCutsceneVoiceAudio.currentTime = 0;
+    } catch (_) {}
+    activeCutsceneVoiceAudio = null;
+  }
+
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function scoreCutsceneVoice(voice, profile) {
+  const name = String(voice?.name || "").toLowerCase();
+  const lang = String(voice?.lang || "").toLowerCase();
+  if (!lang.startsWith("en")) return -10000;
+
+  let score = 0;
+
+  // Prefer browser/cloud neural voices where exposed.
+  if (name.includes("natural")) score += 120;
+  if (name.includes("online")) score += 100;
+  if (name.includes("neural")) score += 120;
+  if (name.includes("google")) score += 35;
+  if (name.includes("microsoft")) score += 30;
+  if (voice.default) score += 8;
+
+  const preferred = profile?.preferred || [];
+  preferred.forEach((term, index) => {
+    if (name.includes(String(term).toLowerCase())) {
+      score += Math.max(10, 75 - index * 8);
+    }
+  });
+
+  // De-prioritize voices that commonly sound especially synthetic.
+  if (name.includes("desktop")) score -= 12;
+  if (name.includes("espeak")) score -= 60;
+
+  return score;
+}
+
+function bestCutsceneVoice(profile) {
+  if (!("speechSynthesis" in window)) return null;
+
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices.length) return null;
+
+  return voices
+    .filter(voice => /^en/i.test(voice.lang || ""))
+    .sort((a, b) => scoreCutsceneVoice(b, profile) - scoreCutsceneVoice(a, profile))[0] || null;
+}
+
+function humanizeCutsceneSpeech(text) {
+  return String(text || "")
+    .replace(/\s*—\s*/g, ", ")
+    .replace(/\s*;\s*/g, ". ")
+    .replace(/:\s+/g, ". ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function closeCutscene({ skipped = false } = {}) {
   if (!activeCutscene) return;
 
@@ -2449,9 +3203,7 @@ function closeCutscene({ skipped = false } = {}) {
     unlockCutscene(activeCutscene.id);
   }
 
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
+  stopCutsceneVoice();
 
   const overlay = el("cutsceneOverlay");
   overlay.classList.add("hidden");
@@ -2476,28 +3228,57 @@ function closeCutscene({ skipped = false } = {}) {
 }
 
 function speakCutsceneLine(line) {
+  if (!state.cutscenes.voiceEnabled || !line) return;
+
+  stopCutsceneVoice();
+
+  const rawText = String(resolveSceneValue(line.text) || "").trim();
+  if (!rawText) return;
+
+  // Best quality path: a real prerecorded line.
+  // Add `audio: "assets/voices/file.mp3"` to any cutscene line to use it.
+  if (line.audio) {
+    const audio = new Audio(line.audio);
+    activeCutsceneVoiceAudio = audio;
+    audio.preload = "auto";
+    audio.volume = 0.96;
+
+    audio.addEventListener("ended", () => {
+      if (activeCutsceneVoiceAudio === audio) activeCutsceneVoiceAudio = null;
+    }, { once: true });
+
+    audio.addEventListener("error", () => {
+      if (activeCutsceneVoiceAudio === audio) activeCutsceneVoiceAudio = null;
+      speakCutsceneLineWithBrowserVoice(line, rawText);
+    }, { once: true });
+
+    audio.play().catch(() => {
+      if (activeCutsceneVoiceAudio === audio) activeCutsceneVoiceAudio = null;
+      speakCutsceneLineWithBrowserVoice(line, rawText);
+    });
+    return;
+  }
+
+  speakCutsceneLineWithBrowserVoice(line, rawText);
+}
+
+function speakCutsceneLineWithBrowserVoice(line, rawText) {
   if (!state.cutscenes.voiceEnabled || !("speechSynthesis" in window)) return;
 
   window.speechSynthesis.cancel();
 
-  const text = String(resolveSceneValue(line.text) || "").trim();
+  const character = line.character ? CUTSCENE_CHARACTERS[line.character] : null;
+  const profile = character?.voice || NARRATOR_VOICE_PROFILE;
+  const text = humanizeCutsceneSpeech(rawText);
   if (!text) return;
 
   const utterance = new SpeechSynthesisUtterance(text);
-  const character = line.character ? CUTSCENE_CHARACTERS[line.character] : null;
+  utterance.pitch = profile.pitch ?? 1;
+  utterance.rate = profile.rate ?? 0.92;
+  utterance.volume = 0.92;
 
-  utterance.pitch = character?.voice?.pitch || 1;
-  utterance.rate = character?.voice?.rate || 0.95;
-  utterance.volume = 0.9;
-
-  const voices = window.speechSynthesis.getVoices();
-  const englishVoices = voices.filter(v => /^en/i.test(v.lang || ""));
-  if (englishVoices.length) {
-    const offset = line.character
-      ? Object.keys(CUTSCENE_CHARACTERS).indexOf(line.character)
-      : 0;
-    utterance.voice = englishVoices[Math.abs(offset) % englishVoices.length];
-  }
+  const selectedVoice = bestCutsceneVoice(profile);
+  if (selectedVoice) utterance.voice = selectedVoice;
 
   window.speechSynthesis.speak(utterance);
 }
@@ -2506,19 +3287,20 @@ function updateCutsceneVoiceButton() {
   const button = el("cutsceneVoiceBtn");
   if (!button) return;
 
-  const supported = "speechSynthesis" in window;
+  const supported = typeof Audio !== "undefined" || "speechSynthesis" in window;
   button.disabled = !supported;
   button.textContent = state.cutscenes.voiceEnabled ? "🔊 Voice On" : "🔇 Voice Off";
   button.title = supported
-    ? "Use your browser's installed voices for spoken dialogue"
+    ? "Natural dialogue voice. Recorded voice lines are used automatically when available."
     : "Spoken dialogue is not supported in this browser";
 }
 
 function toggleCutsceneVoice() {
-  if (!("speechSynthesis" in window)) return;
+  const supported = typeof Audio !== "undefined" || "speechSynthesis" in window;
+  if (!supported) return;
 
   state.cutscenes.voiceEnabled = !state.cutscenes.voiceEnabled;
-  if (!state.cutscenes.voiceEnabled) window.speechSynthesis.cancel();
+  if (!state.cutscenes.voiceEnabled) stopCutsceneVoice();
 
   updateCutsceneVoiceButton();
   saveGame(false);
@@ -2618,9 +3400,7 @@ function chooseCutsceneOption(index) {
 function nextCutsceneLine() {
   if (!activeCutscene) return;
 
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
+  stopCutsceneVoice();
 
   cutsceneLineIndex += 1;
 
@@ -3095,6 +3875,9 @@ function renderDashboard() {
           ${inventoryTile("🪮", "Brushes", state.inventory.brushes)}
           ${inventoryTile("🩺", "Medicine", state.inventory.medicine)}
           ${inventoryTile("🧲", "Horseshoes", state.inventory.horseshoes)}
+          ${inventoryTile("🪵", "Lumber", state.inventory.lumber)}
+          ${inventoryTile("⚙️", "Iron", state.inventory.iron)}
+          ${inventoryTile("🧵", "Cloth", state.inventory.cloth)}
         </div>
       </div>
     </div>
@@ -3246,8 +4029,9 @@ function onHorseAction(e) {
     if (state.inventory.brushes <= 0) return toast("You need a grooming brush.");
     if (!useEnergy(5)) return;
     h.groomed = true;
-    h.bond = clamp(h.bond + 4, 0, 100);
-    h.stress = clamp(h.stress - 5, 0, 100);
+    const washBayBonus = estateBuildingCount("washBay");
+    h.bond = clamp(h.bond + 4 + washBayBonus, 0, 100);
+    h.stress = clamp(h.stress - 5 - washBayBonus, 0, 100);
     state.playerSkills.handling += Math.random() < .3 ? 1 : 0;
     addLog(`Groomed ${h.name}.`);
   }
@@ -3260,7 +4044,8 @@ function onHorseAction(e) {
     if (h.energy < 18) return toast(`${h.name} needs more rest.`);
     if (!useEnergy(15)) return;
 
-    const rawGain = rand(4, 8) + Math.floor(state.playerSkills.training / 5) + (h.trait === "Fast Learner" ? 2 : 0);
+    const roundPenBonus = Math.min(4, estateBuildingCount("roundPen"));
+    const rawGain = rand(4, 8) + Math.floor(state.playerSkills.training / 5) + (h.trait === "Fast Learner" ? 2 : 0) + roundPenBonus;
     const ageCap = h.age === 2 ? 60 : 100;
     const gain = Math.max(0, Math.min(rawGain, ageCap - h.training));
 
@@ -3295,7 +4080,8 @@ function onHorseAction(e) {
     if (!answer) return;
     const match = options.find(x => x.toLowerCase() === answer.trim().toLowerCase());
     if (!match) return toast("That specialization is not available.");
-    if (!spend(250)) return;
+    const specializationCost = Math.max(125, 250 - estateBuildingCount("tackRoom") * 25);
+    if (!spend(specializationCost)) return;
     h.specialization = match;
     state.reputation += 2;
     addLog(`${h.name} specialized in ${match}.`);
@@ -3337,18 +4123,52 @@ function onHorseAction(e) {
 function renderStable() {
   const used = usedEstateAcres();
   const available = availableEstateAcres();
+  const completion = estateCompletionPercent();
+  const craftProgress = craftingProgressData();
+  const nextWorkshopTier = Math.min(WORKSHOP_MAX_TIER, state.crafting.workshopTier + 1);
+  const workshopMaxed = state.crafting.workshopTier >= WORKSHOP_MAX_TIER;
+  const workshopReq = workshopMaxed ? {} : workshopUpgradeRequirements(nextWorkshopTier);
+  const workshopCost = workshopMaxed ? 0 : workshopUpgradeCost(nextWorkshopTier);
+  const supplierLimit = dailySupplierOrderLimit();
+
+  const nextStableLevel = Math.min(STABLE_LEVEL_CAP, state.stableLevel + 1);
+  const stableMaxed = state.stableLevel >= STABLE_LEVEL_CAP;
+  const expansionReq = stableMaxed ? {} : stableExpansionRequirements(nextStableLevel);
+  const conditionReq = stableMaxed ? 0 : stableConditionRequirement(nextStableLevel);
+  const conditionAverage = averageStableCondition();
+
+  const craftedStock = Object.entries(CRAFT_ITEM_NAMES)
+    .filter(([id]) => !["feed","treats","brushes","medicine","horseshoes","grain","lumber","iron","leather","cloth","herbs","rope","nails"].includes(id))
+    .filter(([id]) => inventoryAmount(id) > 0);
 
   el("stableView").innerHTML = `
     <div class="page-heading">
       <div>
-        <div class="eyebrow">PROPERTY & ESTATE MANAGEMENT</div>
-        <h2>Build Your Stable Estate</h2>
-        <p>Repair the inherited property, buy land and choose which facilities define your operation.</p>
+        <div class="eyebrow">PROPERTY • WORKSHOP • ESTATE PROGRESSION</div>
+        <h2>Build Your Stable Empire</h2>
+        <p>Restore the property, master a trade, craft construction components and build a fully developed equestrian estate.</p>
       </div>
-      <span class="pill gold">Level ${state.stableLevel} • ${state.estate.landAcres} acres</span>
+      <span class="pill gold">Stable ${state.stableLevel}/${STABLE_LEVEL_CAP} • Estate ${completion}%</span>
     </div>
 
-    <div class="estate-overview card">
+    <div class="card estate-progression-card">
+      <div class="row wrap">
+        <div>
+          <h3 style="margin-bottom:.2rem">Empire Completion</h3>
+          <div class="muted">Stable levels, facility tiers, workshop tiers and craftsmanship all count toward a complete estate.</div>
+        </div>
+        <strong class="completion-number">${completion}%</strong>
+      </div>
+      <div class="progress empire-progress"><span style="width:${completion}%"></span></div>
+      <div class="progression-breakdown">
+        <span>🏠 Stable ${state.stableLevel}/${STABLE_LEVEL_CAP}</span>
+        <span>🔨 Workshop ${state.crafting.workshopTier}/${WORKSHOP_MAX_TIER}</span>
+        <span>🧰 Crafting ${state.crafting.level}/${CRAFT_MAX_LEVEL}</span>
+        <span>🌱 ${available.toFixed(1)} acres free</span>
+      </div>
+    </div>
+
+    <div class="estate-overview card" style="margin-top:1rem">
       <div class="row wrap">
         <div>
           <h3 style="margin-bottom:.2rem">Estate Plan</h3>
@@ -3358,13 +4178,14 @@ function renderStable() {
       </div>
 
       <div class="estate-map">
-        <div class="estate-tile core"><span>🏠</span><strong>Main Stable</strong><small>Level ${state.stableLevel}</small></div>
+        <div class="estate-tile core"><span>🏠</span><strong>Main Stable</strong><small>Level ${state.stableLevel}/${STABLE_LEVEL_CAP}</small></div>
+        <div class="estate-tile core"><span>🔨</span><strong>Stable Workshop</strong><small>Tier ${state.crafting.workshopTier}/${WORKSHOP_MAX_TIER}</small></div>
         ${ESTATE_BUILDINGS.flatMap(building =>
           Array.from({ length: estateBuildingCount(building.id) }, (_, index) => `
             <div class="estate-tile">
               <span>${building.icon}</span>
               <strong>${escapeHtml(building.name)}</strong>
-              <small>${building.max > 1 ? `#${index + 1}` : escapeHtml(building.effect)}</small>
+              <small>Tier ${index + 1}/${building.max}</small>
             </div>
           `)
         ).join("")}
@@ -3375,6 +4196,7 @@ function renderStable() {
     <div class="grid two" style="margin-top:1rem">
       <div class="card">
         <h3>Property Condition</h3>
+        <div class="notice" style="margin-bottom:.8rem">Average property condition: <strong>${conditionAverage}%</strong>. Higher stable levels require a well-maintained estate.</div>
         ${Object.entries(state.condition).map(([key, value]) => {
           const cost = Math.max(25, Math.round((100-value) * 3.2));
           return `<div class="condition-line">
@@ -3387,10 +4209,31 @@ function renderStable() {
       </div>
 
       <div class="card">
-        <h3>Core Stable Expansion</h3>
-        <p>Traditional expansion still raises your stable level and base capacity.</p>
-        <div class="notice">Current capacity: <strong>${state.capacity} horses</strong></div>
-        <button id="expandStableBtn" class="primary" style="margin-top:.8rem">Expand Stable — ${money(expansionCost())}</button>
+        <div class="row wrap">
+          <div>
+            <h3>Core Stable Expansion</h3>
+            <div class="muted">The main stable now has a hard cap of Level ${STABLE_LEVEL_CAP}.</div>
+          </div>
+          <span class="pill gold">${state.capacity} horse capacity</span>
+        </div>
+
+        ${stableMaxed ? `
+          <div class="notice success-notice" style="margin-top:.8rem">
+            <strong>Main Stable Maximum Reached.</strong><br>
+            The remaining estate progression comes from facilities, workshop tiers and craftsmanship.
+          </div>
+        ` : `
+          <div class="upgrade-requirements">
+            <strong>Next: Stable Level ${nextStableLevel}</strong>
+            <div class="muted">Expansion cost: ${money(expansionCost())}</div>
+            <div class="muted">Required property condition: ${conditionReq ? `${conditionReq}% average` : "No condition gate"}</div>
+            <div class="requirement-wrap">${formatInventoryRequirement(expansionReq)}</div>
+          </div>
+          <button id="expandStableBtn" class="primary" style="margin-top:.8rem"
+            ${conditionAverage < conditionReq || !hasInventoryItems(expansionReq) ? "disabled" : ""}>
+            Expand to Level ${nextStableLevel} — ${money(expansionCost())}
+          </button>
+        `}
 
         <hr>
         <h3>Customization</h3>
@@ -3421,8 +4264,8 @@ function renderStable() {
     <div class="card" style="margin-top:1rem">
       <div class="row wrap">
         <div>
-          <h3 style="margin-bottom:.2rem">Build New Facilities</h3>
-          <div class="muted">Facilities permanently change how your stable operates.</div>
+          <h3 style="margin-bottom:.2rem">Estate Facilities</h3>
+          <div class="muted">Facilities now have multiple tiers. Higher tiers require more money, higher stable levels and crafted components.</div>
         </div>
         <span class="pill">${available.toFixed(1)} acres available</span>
       </div>
@@ -3431,34 +4274,179 @@ function renderStable() {
         ${ESTATE_BUILDINGS.map(building => {
           const count = estateBuildingCount(building.id);
           const full = count >= building.max;
+          const nextTier = Math.min(building.max, count + 1);
           const noLand = available < building.acres;
+          const requiredStable = facilityRequiredStableLevel(building, nextTier);
+          const levelLocked = state.stableLevel < requiredStable;
+          const requirements = full ? {} : facilityCraftRequirements(building, nextTier);
+          const materialsReady = hasInventoryItems(requirements);
+          const cost = full ? 0 : facilityUpgradeCost(building, count);
+          const disabled = full || noLand || levelLocked || !materialsReady;
           return `
-            <div class="facility-card">
+            <div class="facility-card ${full ? "facility-complete" : ""}">
               <div class="row wrap">
                 <strong>${building.icon} ${escapeHtml(building.name)}</strong>
-                <span class="pill">${count}/${building.max}</span>
+                <span class="pill">Tier ${count}/${building.max}</span>
               </div>
               <p>${escapeHtml(building.description)}</p>
-              <div class="muted">${building.acres} acres • ${escapeHtml(building.effect)}</div>
-              <button data-build-facility="${building.id}" ${full || noLand ? "disabled" : ""}>
-                ${full ? "Completed" : `Build — ${money(building.cost)}`}
-              </button>
+              <div class="facility-effect">${escapeHtml(building.effect)}</div>
+              ${full ? `
+                <div class="facility-status complete">Fully upgraded</div>
+              ` : `
+                <div class="facility-tier-details">
+                  <span>${building.acres} acres</span>
+                  <span>Stable Lv. ${requiredStable}</span>
+                  <span>${money(cost)}</span>
+                </div>
+                <div class="requirement-wrap">${formatInventoryRequirement(requirements)}</div>
+                <button data-build-facility="${building.id}" ${disabled ? "disabled" : ""}>
+                  ${levelLocked ? `Unlocks at Stable ${requiredStable}` : noLand ? "More Land Required" : !materialsReady ? "Components Required" : `Build Tier ${nextTier} — ${money(cost)}`}
+                </button>
+              `}
             </div>
           `;
         }).join("")}
+      </div>
+    </div>
+
+    <div class="card crafting-hall" style="margin-top:1rem">
+      <div class="row wrap">
+        <div>
+          <div class="eyebrow">STABLE WORKSHOP</div>
+          <h3 style="margin:.15rem 0">Crafting & Construction</h3>
+          <div class="muted">Crafting is intentionally a long-term progression system. Mastery requires many game days and repeated production.</div>
+        </div>
+        <span class="pill gold">${craftingRankName()} • Lv. ${state.crafting.level}/${CRAFT_MAX_LEVEL}</span>
+      </div>
+
+      <div class="craft-summary-grid">
+        <div class="craft-summary"><span>🔨</span><strong>${state.crafting.workshopTier}/${WORKSHOP_MAX_TIER}</strong><small>Workshop Tier</small></div>
+        <div class="craft-summary"><span>🧰</span><strong>${state.crafting.level}/${CRAFT_MAX_LEVEL}</strong><small>Craftsmanship</small></div>
+        <div class="craft-summary"><span>⚒️</span><strong>${state.crafting.workUnits}/${dailyCraftWorkUnits()}</strong><small>Labor Remaining</small></div>
+        <div class="craft-summary"><span>📦</span><strong>${state.crafting.totalCrafts}</strong><small>Total Crafts</small></div>
+      </div>
+
+      <div class="craft-xp-block">
+        <div class="row">
+          <span>Crafting XP</span>
+          <strong>${escapeHtml(craftProgress.text)}</strong>
+        </div>
+        <div class="progress"><span style="width:${craftProgress.pct}%"></span></div>
+        <div class="muted" style="margin-top:.35rem">Current workshop level cap: <strong>${workshopCraftLevelCap()}</strong>. Workshop upgrades are required to reach the higher craftsmanship ranks.</div>
+      </div>
+
+      <div class="grid two" style="margin-top:1rem">
+        <div class="workshop-upgrade-card">
+          <h4>Workshop Upgrade</h4>
+          ${workshopMaxed ? `
+            <div class="facility-status complete">Tier ${WORKSHOP_MAX_TIER} workshop complete • Level ${CRAFT_MAX_LEVEL} crafting cap unlocked</div>
+          ` : `
+            <p>Upgrade to Tier ${nextWorkshopTier} to increase daily labor and raise the crafting level cap to ${workshopCraftLevelCap(nextWorkshopTier)}.</p>
+            <div class="muted">Cost: <strong>${money(workshopCost)}</strong></div>
+            <div class="requirement-wrap">${formatInventoryRequirement(workshopReq)}</div>
+            <button id="upgradeWorkshopBtn" class="primary" ${!hasInventoryItems(workshopReq) ? "disabled" : ""}>
+              Upgrade Workshop — ${money(workshopCost)}
+            </button>
+          `}
+        </div>
+
+        <div class="workshop-upgrade-card">
+          <h4>Material Supplier</h4>
+          <p>Raw material deliveries are limited each game day, preventing instant mass-crafting.</p>
+          <div class="notice">Orders used today: <strong>${state.crafting.supplierOrdersToday}/${supplierLimit}</strong></div>
+          <div class="material-order-grid">
+            ${CRAFT_MATERIALS.map(material => `
+              <button class="material-order" data-order-material="${material.id}" ${state.crafting.supplierOrdersToday >= supplierLimit ? "disabled" : ""}>
+                <span>${material.icon}</span>
+                <strong>${escapeHtml(material.name)}</strong>
+                <small>+${material.qty} • ${money(material.cost)}</small>
+                <em>Owned: ${inventoryAmount(material.id)}</em>
+              </button>
+            `).join("")}
+          </div>
+        </div>
+      </div>
+
+      <div class="craft-stock-card">
+        <div class="row wrap">
+          <h4>Crafted Component Stock</h4>
+          <span class="muted">${craftedStock.length} component types currently in stock</span>
+        </div>
+        <div class="crafted-stock-grid">
+          ${craftedStock.length ? craftedStock.map(([id, name]) => `
+            <div class="crafted-stock-item">
+              <strong>${inventoryAmount(id)}</strong>
+              <span>${escapeHtml(name)}</span>
+            </div>
+          `).join("") : `<div class="muted">No advanced components crafted yet.</div>`}
+        </div>
+      </div>
+
+      <div class="recipe-section">
+        <div class="row wrap">
+          <div>
+            <h4>Workshop Recipes</h4>
+            <div class="muted">${CRAFT_RECIPES.length} recipes • final masterwork unlocks at Craftsmanship Level ${CRAFT_MAX_LEVEL}</div>
+          </div>
+          <span class="pill">${state.crafting.workUnits} labor available</span>
+        </div>
+
+        <div class="recipe-grid">
+          ${CRAFT_RECIPES.map(recipe => {
+            const levelLocked = state.crafting.level < recipe.level;
+            const workshopLocked = state.crafting.workshopTier < recipe.workshop;
+            const workLocked = state.crafting.workUnits < recipe.work;
+            const materialLocked = !hasInventoryItems(recipe.ingredients);
+            const locked = levelLocked || workshopLocked || workLocked || materialLocked;
+
+            let status = "Ready to craft";
+            if (levelLocked) status = `Requires Craft Lv. ${recipe.level}`;
+            else if (workshopLocked) status = `Requires Workshop Tier ${recipe.workshop}`;
+            else if (workLocked) status = `Needs ${recipe.work} labor`;
+            else if (materialLocked) status = "Missing materials";
+
+            return `
+              <div class="recipe-card ${locked ? "recipe-locked" : "recipe-ready"}">
+                <div class="row wrap">
+                  <strong>${recipe.icon} ${escapeHtml(recipe.name)}</strong>
+                  <span class="pill">${escapeHtml(recipe.category)}</span>
+                </div>
+                <p>${escapeHtml(recipe.description)}</p>
+                <div class="recipe-meta">
+                  <span>Craft Lv. ${recipe.level}</span>
+                  <span>Workshop ${recipe.workshop}</span>
+                  <span>${recipe.work} labor</span>
+                  <span>+${recipe.xp} XP</span>
+                </div>
+                <div class="recipe-flow">
+                  <div><small>Requires</small><div>${formatRecipeItems(recipe.ingredients)}</div></div>
+                  <div class="recipe-arrow">→</div>
+                  <div><small>Produces</small><div>${formatRecipeItems(recipe.outputs)}</div></div>
+                </div>
+                <button data-craft-recipe="${recipe.id}" ${locked ? "disabled" : ""}>${status}</button>
+              </div>
+            `;
+          }).join("")}
+        </div>
       </div>
     </div>
   `;
 
   document.querySelectorAll("[data-repair]").forEach(btn => btn.addEventListener("click", () => repairStable(btn.dataset.repair)));
   document.querySelectorAll("[data-build-facility]").forEach(btn => btn.addEventListener("click", () => buildEstateFacility(btn.dataset.buildFacility)));
-  el("buyLandBtn").addEventListener("click", buyEstateLand);
-  el("expandStableBtn").addEventListener("click", expandStable);
-  el("saveCustomizationBtn").addEventListener("click", saveCustomization);
+  document.querySelectorAll("[data-order-material]").forEach(btn => btn.addEventListener("click", () => orderCraftMaterial(btn.dataset.orderMaterial)));
+  document.querySelectorAll("[data-craft-recipe]").forEach(btn => btn.addEventListener("click", () => craftRecipe(btn.dataset.craftRecipe)));
+
+  el("buyLandBtn")?.addEventListener("click", buyEstateLand);
+  el("expandStableBtn")?.addEventListener("click", expandStable);
+  el("saveCustomizationBtn")?.addEventListener("click", saveCustomization);
+  el("upgradeWorkshopBtn")?.addEventListener("click", upgradeWorkshop);
 }
 
 function expansionCost() {
-  return 900 + (state.stableLevel - 1) * 850;
+  if (state.stableLevel >= STABLE_LEVEL_CAP) return 0;
+  const current = Math.max(1, Number(state.stableLevel || 1));
+  return Math.round((900 + (current - 1) * 900 + Math.pow(current - 1, 2) * 250) / 50) * 50;
 }
 
 function repairStable(key) {
@@ -3476,12 +4464,31 @@ function repairStable(key) {
 }
 
 function expandStable() {
+  if (state.stableLevel >= STABLE_LEVEL_CAP) return toast("Your main stable is already at the maximum level.");
+
+  const nextLevel = state.stableLevel + 1;
   const cost = expansionCost();
+  const requirements = stableExpansionRequirements(nextLevel);
+  const conditionRequired = stableConditionRequirement(nextLevel);
+
+  if (averageStableCondition() < conditionRequired) {
+    return toast(`Raise average property condition to at least ${conditionRequired}% before expanding.`);
+  }
+  if (!hasInventoryItems(requirements)) {
+    return toast("You are missing crafted construction components for this expansion.");
+  }
   if (!spend(cost)) return;
-  state.stableLevel += 1;
-  state.capacity += state.stableLevel <= 3 ? 3 : 5;
-  state.reputation += 5;
-  addLog(`Expanded the stable to Level ${state.stableLevel}. Capacity is now ${state.capacity}.`);
+
+  consumeInventoryItems(requirements);
+  state.stableLevel = nextLevel;
+
+  let addedCapacity = 3;
+  if (nextLevel >= 5) addedCapacity = 4;
+  if (nextLevel >= 9) addedCapacity = 5;
+
+  state.capacity += addedCapacity;
+  state.reputation += 4 + Math.floor(nextLevel / 3);
+  addLog(`Expanded the main stable to Level ${state.stableLevel}. Capacity increased by ${addedCapacity}.`);
   checkContracts("expand");
   saveGame(false);
   renderAll();
@@ -3819,57 +4826,83 @@ function renderTown() {
   el("townView").innerHTML = `
     <div class="page-heading">
       <div>
-        <div class="eyebrow">CEDAR VALLEY COUNTY MAP</div>
-        <h2>World Map</h2>
-        <p>Explore an actual map-style town view with trails, services and clickable destinations.</p>
+        <div class="eyebrow">CEDAR VALLEY COUNTY SURVEY</div>
+        <h2>Frontier County Map</h2>
+        <p>A cleaner frontier-style map with roads, trails, landmarks and county destinations.</p>
       </div>
       <span class="pill gold">${escapeHtml(activeLocation.name)}</span>
     </div>
 
     <div class="town-map-layout">
-      <div class="card map-card">
-        <h3 style="margin-bottom:.65rem">Neighborhood Map</h3>
-        <div class="sims-map">
-          <div class="map-cloud one"></div>
-          <div class="map-cloud two"></div>
+      <div class="card map-card frontier-map-card">
+        <div class="map-title-row">
+          <div>
+            <h3 style="margin-bottom:.25rem">County Survey Map</h3>
+            <div class="map-subtitle">Cedar Valley Territory • Stable Routes, Town Services & Riding Trails</div>
+          </div>
+          <div class="map-legend-strip">
+            <span><i class="legend-road"></i> Main Roads</span>
+            <span><i class="legend-trail"></i> Riding Trails</span>
+            <span><i class="legend-water"></i> Water</span>
+          </div>
+        </div>
 
-          <div class="map-patch hill" style="left:70%;top:26%;width:160px;height:90px;"></div>
-          <div class="map-patch hill" style="left:76%;top:13%;width:120px;height:70px;"></div>
-          <div class="map-patch field" style="left:8%;top:74%;width:130px;height:70px;"></div>
-          <div class="map-patch field" style="left:16%;top:42%;width:90px;height:52px;"></div>
+        <div class="sims-map frontier-map">
+          <div class="paper-fold fold-a"></div>
+          <div class="paper-fold fold-b"></div>
+          <div class="frontier-compass" aria-hidden="true">
+            <span class="north">N</span>
+          </div>
+          <div class="map-scale">Scale • 1 Mile</div>
+          <div class="county-stamp">County Survey Office</div>
 
           <div class="map-river-label">Willow River</div>
           <div class="map-hills-label">North Ridge</div>
           <div class="map-meadow-label">South Meadow</div>
+          <div class="map-forest-label">Hollow Timber</div>
+          <div class="map-prairie-label">Prairie Run</div>
 
-          <svg class="trail-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path class="river-path" d="M0,22 C9,20 16,22 23,28 C31,35 40,36 52,34 C64,32 73,29 81,21 C89,13 95,8 100,6"></path>
+          <svg class="trail-overlay frontier-overlay" viewBox="0 0 1000 650" preserveAspectRatio="none" aria-hidden="true">
+            <rect class="county-border" x="18" y="18" width="964" height="614" rx="12"></rect>
 
-            <path class="trail-main" d="M18,70 C21,61 25,54 31,58 C35,60 37,54 37,49 C37,45 43,44 47,43 C54,41 57,44 60,49"></path>
-            <path class="trail-edge" d="M18,70 C21,61 25,54 31,58 C35,60 37,54 37,49 C37,45 43,44 47,43 C54,41 57,44 60,49"></path>
+            <!-- subtle contour lines -->
+            <path class="contour-line" d="M52 115 C145 72 262 82 340 125 C425 172 530 165 615 122 C700 80 812 78 942 116"></path>
+            <path class="contour-line" d="M68 170 C165 132 260 142 330 174 C420 216 542 208 630 174 C722 140 826 140 930 180"></path>
+            <path class="contour-line" d="M66 236 C148 204 234 210 322 248 C408 286 510 292 628 258 C742 224 846 226 930 250"></path>
+            <path class="contour-line" d="M84 462 C170 430 248 428 342 456 C440 486 546 490 664 464 C760 442 854 432 932 452"></path>
+            <path class="contour-line" d="M76 540 C170 510 276 505 378 528 C470 548 564 554 664 540 C776 524 856 512 928 526"></path>
 
-            <path class="trail-main" d="M60,49 C62,44 61,40 61,36 C61,31 69,28 73,23"></path>
-            <path class="trail-edge" d="M60,49 C62,44 61,40 61,36 C61,31 69,28 73,23"></path>
+            <!-- water -->
+            <path class="water-fill" d="M0 122 C84 110 142 128 216 178 C294 230 386 236 502 220 C620 204 738 172 836 100 C898 54 948 26 1000 12 L1000 0 L0 0 Z"></path>
+            <path class="water-stroke" d="M0 122 C84 110 142 128 216 178 C294 230 386 236 502 220 C620 204 738 172 836 100 C898 54 948 26 1000 12"></path>
 
-            <path class="trail-main" d="M60,49 C67,48 72,47 76,46"></path>
-            <path class="trail-edge" d="M60,49 C67,48 72,47 76,46"></path>
+            <!-- rail line -->
+            <path class="rail-line" d="M78 392 C182 370 272 350 392 332 C498 316 614 310 716 326 C818 344 892 370 956 392"></path>
 
-            <path class="trail-main" d="M76,46 C80,51 82,57 84,66"></path>
-            <path class="trail-edge" d="M76,46 C80,51 82,57 84,66"></path>
+            <!-- main roads -->
+            <path class="road-main" d="M165 512 C196 448 228 393 288 406 C334 416 352 376 358 336 C362 302 410 292 454 282 C526 264 571 280 610 334"></path>
+            <path class="road-main" d="M610 334 C634 272 628 226 630 176 C632 126 692 108 736 78"></path>
+            <path class="road-main" d="M610 334 C686 332 736 326 786 314"></path>
+            <path class="road-main" d="M786 314 C824 360 844 422 862 510"></path>
+            <path class="road-main" d="M360 336 C296 308 252 258 224 206"></path>
 
-            <path class="trail-main" d="M37,49 C31,45 25,38 22,31"></path>
-            <path class="trail-edge" d="M37,49 C31,45 25,38 22,31"></path>
-
-            <path class="trail-main" d="M31,58 C36,61 40,66 43,70"></path>
-            <path class="trail-edge" d="M31,58 C36,61 40,66 43,70"></path>
-
-            <path class="trail-main" d="M43,70 C47,66 51,63 53,60"></path>
-            <path class="trail-edge" d="M43,70 C47,66 51,63 53,60"></path>
+            <!-- riding trails -->
+            <path class="trail-dashed" d="M288 406 C334 434 386 476 430 534"></path>
+            <path class="trail-dashed" d="M430 534 C468 492 508 454 540 418"></path>
+            <path class="trail-dashed" d="M542 418 C584 444 632 466 672 498"></path>
+            <path class="trail-dashed" d="M224 206 C256 228 282 248 308 268"></path>
+            <path class="trail-dashed" d="M744 78 C770 122 784 164 788 210"></path>
           </svg>
+
+          <div class="terrain-stamp ridge" style="left:73%; top:18%; width:170px; height:95px;"></div>
+          <div class="terrain-stamp ridge" style="left:79%; top:11%; width:122px; height:66px;"></div>
+          <div class="terrain-stamp meadow" style="left:11%; top:74%; width:145px; height:72px;"></div>
+          <div class="terrain-stamp meadow" style="left:18%; top:45%; width:100px; height:58px;"></div>
+          <div class="terrain-stamp woods" style="left:56%; top:58%; width:140px; height:84px;"></div>
 
           ${TOWN_LOCATIONS.map(location => `
             <button
-              class="map-node ${location.id === activeLocation.id ? "active" : ""}"
+              class="map-node frontier-node ${location.id === activeLocation.id ? "active" : ""}"
               style="left:${location.x}%; top:${location.y}%"
               data-map-location="${location.id}"
               aria-label="Open ${escapeAttr(location.name)}"
@@ -3884,8 +4917,8 @@ function renderTown() {
           `).join("")}
         </div>
 
-        <div class="map-caption">
-          Click a location to travel there. The roads and trails are purely visual right now, but they make the world feel more like a neighborhood map instead of a list of cards.
+        <div class="map-caption frontier-caption">
+          This county survey view is designed to feel more like a frontier paper map. Click any location marker to travel there.
         </div>
       </div>
 
@@ -4327,7 +5360,7 @@ function runPractice() {
 
   horse.energy = clamp(horse.energy - (15 + extraEnergy), 0, 100);
   const weatherMod = weatherPracticeModifier();
-  const facilityBonus = estateBuildingCount("privateTrack") ? 1 : 0;
+  const facilityBonus = Math.min(4, estateBuildingCount("privateTrack"));
 
   const primaryGain = Math.max(1, Math.round(rand(1, 2) * weatherMod) + facilityBonus);
   applyHorseStatGain(horse, practice.primary, primaryGain);
@@ -4420,7 +5453,7 @@ function enterCompetition(competitionId) {
     state.raceRecord.winsByType[competition.id] =
       (state.raceRecord.winsByType[competition.id] || 0) + 1;
 
-    state.reputation += competition.reputation + (estateBuildingCount("trophyHall") ? 1 : 0);
+    state.reputation += competition.reputation + estateBuildingCount("trophyHall");
     state.marketing.exposure += 2;
     horse.value += Math.round(prize * .18);
 
@@ -4667,7 +5700,9 @@ function fireStaff(id) {
 }
 
 function processStaff() {
-  const wages = state.staff.reduce((sum,s)=>sum+s.wage,0);
+  const baseWages = state.staff.reduce((sum,s)=>sum+s.wage,0);
+  const staffQuarterDiscount = Math.min(.15, estateBuildingCount("staffQuarters") * .05);
+  const wages = Math.round(baseWages * (1 - staffQuarterDiscount));
   if (wages > 0) {
     if (state.money >= wages) {
       state.money -= wages;
@@ -4695,9 +5730,17 @@ function processStaff() {
     addLog(`Trainer worked with ${target.name}.`);
   }
 
-  if (estateBuildingCount("feedWarehouse") && Math.random() < .28) {
-    state.inventory.feed += 2;
-    addLog("Feed Warehouse bulk stock saved two bags of feed.");
+  const warehouseTier = estateBuildingCount("feedWarehouse");
+  const hayShedTier = estateBuildingCount("hayShed");
+  if (warehouseTier && Math.random() < Math.min(.65, .18 + warehouseTier * .12)) {
+    const savedFeed = 1 + warehouseTier;
+    state.inventory.feed += savedFeed;
+    addLog(`Feed Warehouse bulk stock saved ${savedFeed} bags of feed.`);
+  }
+  if (hayShedTier && Math.random() < Math.min(.55, .12 + hayShedTier * .10)) {
+    const storedFeed = 1 + Math.ceil(hayShedTier / 2);
+    state.inventory.feed += storedFeed;
+    addLog(`Hay Shed preserved ${storedFeed} extra feed.`);
   }
 
   if (state.staff.some(s=>s.role==="Manager")) {
@@ -4744,6 +5787,8 @@ function advanceDay() {
   state.day += 1;
   state.questStats.totalDays += 1;
   state.energy = 100;
+  state.crafting.workUnits = dailyCraftWorkUnits();
+  state.crafting.supplierOrdersToday = 0;
 
   if (state.day > 30) {
     state.day = 1;
@@ -4756,7 +5801,7 @@ function advanceDay() {
   }
 
   const paddockBonus = estateBuildingCount("paddock") * 2;
-  const vetRecoveryBonus = estateBuildingCount("vetWing") ? 1 : 0;
+  const vetRecoveryBonus = Math.min(2, estateBuildingCount("vetWing"));
 
   state.horses.forEach(h => {
     h = normalizeHorseData(h);

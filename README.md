@@ -809,3 +809,69 @@ Downloaded files use the stable name and date when possible, for example:
 `cedar-valley-stables-save-2026-08-27.json`
 
 This makes it easier for players to keep multiple career backups on their own computer.
+
+
+# V2 CUTSCENE HOTFIX
+
+Fixed an issue where the empty cinematic overlay could appear immediately on page load.
+
+Cause:
+`.cutscene-overlay { display: grid; }` appeared later in the stylesheet than the generic `.hidden` rule and could override it.
+
+Fix:
+`.cutscene-overlay.hidden { display: none !important; }`
+
+This change does not alter or reset saved careers.
+
+
+# V2 FRONTIER MAP REFRESH
+
+This update replaces the brighter neighborhood-style county map presentation with a cleaner frontier paper-map style inspired by classic western survey maps.
+
+Included changes:
+- parchment / paper map background
+- county border treatment
+- rail line and cleaner road/trail styling
+- frontier-style location markers
+- compass rose, scale note and survey stamp
+- cleaner map labels and legend
+- no save reset; existing browser saves continue normally
+
+Technical note:
+This is mainly a presentation update affecting `renderTown()` in `app.js` and town map styling in `styles.css`.
+
+
+# V2 DEEP STABLE & CRAFTING EXPANSION
+
+This update turns stable development into a much longer progression system.
+
+## Core Stable
+- Main stable now caps at Level 12.
+- Expansion costs scale much more aggressively.
+- Higher levels require minimum average property condition.
+- Levels 4-12 require crafted construction components.
+- The final Level 12 expansion requires a Level 15 masterwork component.
+
+## Estate Facilities
+- 14 facility types.
+- Most facilities now have 3-5 upgrade tiers.
+- Higher tiers require land, stable levels, money and crafted components.
+- Added Training Round Pen, Hay & Bedding Shed, Expanded Tack Room, Wash & Grooming Bay, Staff Quarters and Stud & Breeding Barn.
+- Existing facilities were expanded into deeper tier systems.
+
+## Crafting
+- Craftsmanship has 15 levels.
+- Stable Workshop has 6 tiers.
+- Workshop tier controls the maximum crafting level that can be reached.
+- 27 workshop recipes across Horse Care, Tack, Farrier, Training, Construction, Prestige and Masterwork categories.
+- Raw material supplier orders are limited per game day.
+- Workshop labor is limited per game day and scales with workshop tier.
+- Crafting XP requirements increase heavily at higher levels.
+- Advanced components are required for late-game facility and stable upgrades.
+- Level 15 unlocks the Legacy Craftsman's Kit, required for final estate progression.
+
+## Save Safety
+- Existing save key remains `stableEmpireSave_v1`.
+- Save schema upgraded internally to 11.
+- Existing careers migrate automatically.
+- Automatic pre-update backup behavior remains enabled.
