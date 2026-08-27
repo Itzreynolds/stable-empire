@@ -1518,3 +1518,10 @@ body.cutscene-open {
   line-height: 1.35;
   padding: .1rem .2rem;
 }
+
+
+/* V2 CUTSCENE VISIBILITY FIX
+   The cinematic overlay must stay hidden until JavaScript starts a real scene. */
+.cutscene-overlay.hidden {
+  display: none !important;
+}
